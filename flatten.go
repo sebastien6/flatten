@@ -16,7 +16,6 @@ type flatList struct {
 	inputList   interface{}
 	returnList  interface{}
 	trimedList  []interface{}
-	parsedList  []interface{}
 	countInt    int
 	countString int
 	countFloat  int
@@ -28,8 +27,13 @@ func FlattenList(input interface{}) interface{} {
 	var fl flatList
 	fl.inputList = input
 
-	fl.trimList()
-	fl.parseList()
+	switch v := fl.inputList.(type) {
+	case string, []byte:
+		fl.trimList()
+		fl.parseList()
+	case []interface{}:
+		fl.trimedList = fl.parseInterfaceArray(&v)
+	}
 
 	if fl.countString == 0 && fl.countFloat == 0 {
 		l := fl.convertInt()
@@ -41,6 +45,7 @@ func FlattenList(input interface{}) interface{} {
 		l := fl.convertFloat64()
 		return l
 	}
+
 	return fl.trimedList
 }
 
@@ -122,6 +127,29 @@ func (f *flatList) parseList() {
 			f.countString++
 		}
 	}
+}
+
+func (f *flatList) parseInterfaceArray(input *[]interface{}) (result []interface{}) {
+	for _, v := range *input {
+		switch x := v.(type) {
+		case []interface{}:
+			l := f.parseInterfaceArray(&x)
+			for _, t := range l {
+				result = append(result, t)
+			}
+		case int, int16, int32:
+			result = append(result, x)
+			f.countInt++
+		case float32, float64:
+			result = append(result, x)
+			f.countFloat++
+		case string:
+			result = append(result, x)
+			f.countString++
+		}
+	}
+
+	return
 }
 
 // isintorfloat test if a value is a numerical value, and if
