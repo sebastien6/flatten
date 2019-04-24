@@ -99,6 +99,18 @@ func Test_trimList(t *testing.T) {
 	}
 }
 
+func Test_parseInterfaceArray(t *testing.T) {
+	var fl flatList
+	expectedinterface := []interface{}{5, 7.1, 8, "hello", 11, 7, 1}
+	got := fl.parseInterfaceArray(&[]interface{}{5, []interface{}{7.1, 8}, []interface{}{"hello", 11, []interface{}{7}}, 1})
+
+	for i := range got {
+		if got[i] != expectedinterface[i] {
+			t.Error("FlattenList incorrect returned list")
+		}
+	}
+}
+
 func Test_FlattenList(t *testing.T) {
 	expectedinterface := []interface{}{5, "hello", 7.6}
 	got := FlattenList("[5, [hello, [7.6]]]")
@@ -138,10 +150,12 @@ func Test_FlattenList(t *testing.T) {
 			t.Error("FlattenList incorrect returned list")
 		}
 	}
-}
 
-// func Benchmarkisintorfloat(b *testing.B) {
-// 	for i := 0; i < b.N; i++ {
-// 		isintorfloat([]byte("79458124545.1548545"))
-// 	}
-// }
+	expectedint = []int{5, 7, 8, 9, 11, 7, 1}
+	got = FlattenList([]interface{}{5, []interface{}{7, 8}, []interface{}{9, 11, []interface{}{7}}, 1})
+	for i, v := range got.([]int) {
+		if v != expectedint[i] {
+			t.Error("FlattenList incorrect returned list")
+		}
+	}
+}
