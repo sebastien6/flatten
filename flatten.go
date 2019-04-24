@@ -1,17 +1,18 @@
-// Package flatten take a list of embbedded array into a string or []byte
-// from and return a flatten list based on content.
+// Package flatten convert embedded array to a flat array
 //
-// if the list contains a single type of values (int, float64, or string),
-// it returns an equivalent gl array ([]int, []float64, []string).
-//
-// if the lsit is made of mutliple type of values, it returns a
-// Go interface array ([]interface{}).
+// the package export a single function (FlattenList) that take
+// an interface as argument and return the resulting flatten
+// array through an interface.
 package flatten
 
 import (
 	"strconv"
 )
 
+// flatlist internal struct used to keep track of some metrics
+// during the computation. Those metric will be used to define
+// if a resulting array contain elements of the same type or
+// a mix of various type.
 type flatList struct {
 	inputList   interface{}
 	returnList  interface{}
@@ -21,8 +22,27 @@ type flatList struct {
 	countFloat  int
 }
 
-// FlattenList takes a list of embedded array in a string, and return
-// the appropriate flatten list of values.
+// FlattenList take as input embedded array in three formats:
+//
+// string: Embedded array inside a string "[1, [2, 3], 4]"
+// []byte: Such as JSON embedded array []byte("[1, [2, 3], 4]")
+// []interface{}: Native Golang embedded array format
+//
+// The embedded array is first flatten, and then if all the
+// element of the flatten array are of the same type, the
+// resulting array is converted in the appropriate array
+// format.
+//
+// the function can return the flatten array in 4 differents
+// format based on its content:
+//
+// []int: 			All elements are integer, not exceeding the limit
+// 					relative to int32
+// []float64: 		All elements are float value, not exceeding the limit
+// 					relative to float32
+// []string:    	All elements are of type string or interpreted as string
+// []interface{}:	Element of the array are a mix of different types (integer,
+//					float and string)
 func FlattenList(input interface{}) interface{} {
 	var fl flatList
 	fl.inputList = input
@@ -129,6 +149,10 @@ func (f *flatList) parseList() {
 	}
 }
 
+// parseInterfaceArray loop recusively through embedded interface array
+// to return a flatten array of elements.
+// The function accept elements of type int16, int32, float32, float64,
+// and string. Element of other type will just be discard from the list.
 func (f *flatList) parseInterfaceArray(input *[]interface{}) (result []interface{}) {
 	for _, v := range *input {
 		switch x := v.(type) {
