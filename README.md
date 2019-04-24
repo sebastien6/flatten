@@ -28,3 +28,17 @@ array through an interface.
  - []string:    	All elements are of type string or interpreted as string
  - []interface{}:	Element of the array are a mix of different types (integer,
 					float and string)
+
+Example:
+
+flatten.FlattenList([]interface{}{5, []interface{}{7, 8}, []interface{}{9, 11, []interface{}{7}}, 1})
+
+Returned: [5 7 8 9 11 7 1], of type []int
+
+flatten.FlattenList([]interface{}{5.1, []interface{}{"hello", 8}})
+
+Returned: [5.1 hello 8], of type []interface {}
+
+flatten.FlattenList([]byte("[1.6, 22.789, [3.1, [4.541], []], 8.96]"))
+
+Returned: [1.6 22.789 3.1 4.541 8.96], of type []float64
