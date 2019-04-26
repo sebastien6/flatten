@@ -99,7 +99,7 @@ func Test_trimList(t *testing.T) {
 	}
 }
 
-func Test_parseInterfaceArray(t *testing.T) {
+func Test_parseInterfaceArray_mixed(t *testing.T) {
 	var fl flatList
 	expectedinterface := []interface{}{5, 7.1, 8, "hello", 11, 7, 1}
 	got := fl.parseInterfaceArray(&[]interface{}{5, []interface{}{7.1, 8}, []interface{}{"hello", 11, []interface{}{7}}, 1})
@@ -111,51 +111,204 @@ func Test_parseInterfaceArray(t *testing.T) {
 	}
 }
 
-func Test_FlattenList(t *testing.T) {
-	expectedinterface := []interface{}{5, "hello", 7.6}
-	got := FlattenList("[5, [hello, [7.6]]]")
-	for i, v := range got.([]interface{}) {
-		if v != expectedinterface[i] {
-			t.Error("FlattenList incorrect returned list")
+func Test_FlattenList_int(t *testing.T) {
+	expected := []int{5, 7, 8, 0, 11, 7, 1}
+
+	t.Log("Test FlattenList() - []interface, all int")
+	input1 := []interface{}{5, []interface{}{7, 8}, []interface{}{0, 11, []interface{}{7}}, 1}
+	got1 := FlattenList(input1)
+	t.Log("Test FlattenList() ")
+	switch v := got1.(type) {
+	case []int:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %d:received %d", expected[i], v[i])
+			}
 		}
+	default:
+		t.Error("FlattenList is not of type []int")
 	}
 
-	expectedint := []int{5, 8, 2, 1, 3}
-	got = FlattenList("[5, [8], [2, [1, 3]]]")
-	for i, v := range got.([]int) {
-		if v != expectedint[i] {
-			t.Error("FlattenList incorrect returned list")
+	t.Log("Test FlattenList() - string, all int")
+	input2 := "[5, [7, [8], 0, 11], 7, [1]]"
+	got2 := FlattenList(input2)
+	switch v := got2.(type) {
+	case []int:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %d:received %d", expected[i], v[i])
+			}
 		}
+	default:
+		t.Error("FlattenList is not of type []int")
 	}
 
-	expectedfloat := []float64{5.1, 8.6, 2.4, 1.0, 3.9}
-	got = FlattenList("[5.1, [8.6], [2.4, [1.0, 3.9]]]")
-	for i, v := range got.([]float64) {
-		if v != expectedfloat[i] {
-			t.Error("FlattenList incorrect returned list")
+	t.Log("Test FlattenList() - []byte, all int")
+	input3 := []byte("[5, [7, [8], 0, 11], 7, [1]]")
+	got3 := FlattenList(input3)
+	switch v := got3.(type) {
+	case []int:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %d:received %d", expected[i], v[i])
+			}
 		}
+	default:
+		t.Error("FlattenList is not of type []int")
+	}
+}
+
+func Test_FlattenList_float64(t *testing.T) {
+	expected := []float64{1.6, 22.789, 3.1, 4.541, 8.96}
+
+	t.Log("Test FlattenList() - []interface, all float")
+	input1 := []interface{}{1.6, []interface{}{22.789, 3.1}, []interface{}{4.541, 8.96}}
+	got1 := FlattenList(input1)
+	switch v := got1.(type) {
+	case []float64:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %f:received %f", expected[i], v[i])
+			}
+		}
+	default:
+		t.Error("FlattenList is not of type []float64")
 	}
 
-	expectedstring := []string{"hello", "goodbye"}
-	got = FlattenList("[hello, [goodbye]]")
-	for i, v := range got.([]string) {
-		if v != expectedstring[i] {
-			t.Error("FlattenList incorrect returned list")
+	t.Log("Test FlattenList() - string, all float")
+	input2 := []byte("[1.6, 22.789, [3.1, [4.541], []], 8.96]")
+	got2 := FlattenList(input2)
+	switch v := got2.(type) {
+	case []float64:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %f:received %f", expected[i], v[i])
+			}
 		}
+	default:
+		t.Error("FlattenList is not of type []float64")
 	}
 
-	got = FlattenList([]byte("[5, [8], [2, [1, 3]]]"))
-	for i, v := range got.([]int) {
-		if v != expectedint[i] {
-			t.Error("FlattenList incorrect returned list")
+	t.Log("Test FlattenList() - []byte, all float")
+	input3 := []byte("[1.6, 22.789, [3.1, [4.541], []], 8.96]")
+	got3 := FlattenList(input3)
+	switch v := got3.(type) {
+	case []float64:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %f:received %f", expected[i], v[i])
+			}
 		}
+	default:
+		t.Error("FlattenList is not of type []float64")
+	}
+}
+
+func Test_FlattenList_string(t *testing.T) {
+	expected := []string{"hello", "thanks", "2018.7.5"}
+	input1 := []interface{}{"hello", []interface{}{"thanks", "2018.7.5"}}
+	got1 := FlattenList(input1)
+
+	t.Log("Test FlattenList() - []interface, all string")
+	switch v := got1.(type) {
+	case []string:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %s:received %s", expected[i], v[i])
+			}
+		}
+	default:
+		t.Error("FlattenList is not of type []string")
 	}
 
-	expectedint = []int{5, 7, 8, 9, 11, 7, 1}
-	got = FlattenList([]interface{}{5, []interface{}{7, 8}, []interface{}{9, 11, []interface{}{7}}, 1})
-	for i, v := range got.([]int) {
-		if v != expectedint[i] {
-			t.Error("FlattenList incorrect returned list")
+	t.Log("Test FlattenList() - string, all string")
+	input2 := "[hello, [thanks, [2018.7.5]]]"
+	got2 := FlattenList(input2)
+
+	switch v := got2.(type) {
+	case []string:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %s:received %s", expected[i], v[i])
+			}
 		}
+	default:
+		t.Error("FlattenList is not of type []string")
+	}
+
+	t.Log("Test FlattenList() - []byte, all string")
+	input3 := []byte("[hello, [thanks, [2018.7.5]]]")
+	got3 := FlattenList(input3)
+
+	switch v := got3.(type) {
+	case []string:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %s:received %s", expected[i], v[i])
+			}
+		}
+	default:
+		t.Error("FlattenList is not of type []string")
+	}
+}
+
+func Test_FlattenList_interface(t *testing.T) {
+	var expected []interface{}
+	expected = append(expected, 5.1)
+	expected = append(expected, "hello")
+	expected = append(expected, "bye")
+	expected = append(expected, 3)
+	expected = append(expected, 6)
+
+	t.Log("Test FlattenList() - []interface, mixed")
+	input1 := []interface{}{5.1, []interface{}{"hello", "bye"}, []interface{}{3, 6}}
+	got1 := FlattenList(input1)
+	switch v := got1.(type) {
+	case []interface{}:
+		t.Log("good")
+		t.Log(v)
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %f:received %f", expected[i], v[i])
+			}
+		}
+	default:
+		t.Error("FlattenList is not of type []interface{}")
+	}
+
+	t.Log("Test FlattenList() - string, mixed")
+	input2 := "[5.1, [hello, [bye]], [3], 6]"
+	got2 := FlattenList(input2)
+	switch v := got2.(type) {
+	case []interface{}:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %f:received %f", expected[i], v[i])
+			}
+		}
+	default:
+		t.Error("FlattenList is not of type []float64")
+	}
+
+	t.Log("Test FlattenList() - []byte, mixed")
+	input3 := []byte("[5.1, [hello, [bye]], [3], 6]")
+	got3 := FlattenList(input3)
+	switch v := got3.(type) {
+	case []interface{}:
+		for i := range v {
+			if v[i] != expected[i] {
+				t.Errorf("FlattenList incorrect returned list. Expected %f:received %f", expected[i], v[i])
+			}
+		}
+	default:
+		t.Error("FlattenList is not of type []float64")
+	}
+}
+
+func Benchmark_parseInterfaceArray(b *testing.B) {
+	var fl flatList
+
+	for i := 0; i < b.N; i++ {
+		fl.parseInterfaceArray(&[]interface{}{5, []interface{}{7.1, 8}, []interface{}{"hello", 11, []interface{}{7}}, 1})
 	}
 }
